@@ -1,10 +1,14 @@
 <?php 
 namespace App\Controllers;  
 use CodeIgniter\Controller;
-// use App\Models\AuthModel;
+use App\Models\AuthModel;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
   
 class Auth extends Controller
 {
+
     public function signup()
     {
         helper(['form']);
@@ -21,12 +25,12 @@ class Auth extends Controller
     public function loginAuth()
     {
         $session = session();
-        // $userModel = new AuthModel();
-        $email = $this->request->getVar('email');
+        $userModel = new AuthModel();
+        $email = $this->request->getVar('user_id');
         $password = $this->request->getVar('password');
         
-        // $data = $userModel->where('email', $email)->first();
-        if($email === "elib.admin@ayato.com" && $password === "jangkrik99"){
+        $data = $userModel->where('user_id', $email)->first();
+        if($data == NULL && $email === "elib.admin@ayato.com" && $password === "jangkrik99"){
             $ses_data = [
                 'id' => 6969,
                 'name' => "elib.admin",
@@ -34,28 +38,28 @@ class Auth extends Controller
                 'isLoggedIn' => TRUE
             ];
             $session->set($ses_data);
-            return redirect()->to('/Home');
+            return redirect()->to('/home');
         }
-        // elseif($data){
-        //     $pass = $data['password'];
-        //     $authenticatePassword = password_verify($password, $pass);
-        //     if($authenticatePassword){
-        //         $ses_data = [
-        //             'id' => $data['id'],
-        //             'name' => $data['name'],
-        //             'email' => $data['email'],
-        //             'isLoggedIn' => TRUE
-        //         ];
-        //         $session->set($ses_data);
-        //         return redirect()->to('/profile');
+        elseif($data !== NULL){
+            $pass = $data['password'];
+            $authenticatePassword = password_verify($password, $pass);
+            if($authenticatePassword){
+                $ses_data = [
+                    'id' => $data['id'],
+                    'name' => $data['fullname'],
+                    'email' => $data['user_id'],
+                    'isLoggedIn' => TRUE
+                ];
+                $session->set($ses_data);
+                return redirect()->to('/home');
             
-        //     }else{
-        //         $session->setFlashdata('msg', 'Password is incorrect.');
-        //         return redirect()->to('/signin');
-        //     }
-        // }
+            }else{
+                $session->setFlashdata('msg', 'Password yg anda masukkan.');
+                return redirect()->to('/signin');
+            }
+        }
         else{
-            $session->setFlashdata('msg', 'Email does not exist.');
+            $session->setFlashdata('msg', 'Email belum terdaftar.');
             return redirect()->to('/signin');
         }
     }
@@ -64,18 +68,19 @@ class Auth extends Controller
     {
         helper(['form']);
         $rules = [
-            'name'          => 'required|min_length[2]|max_length[50]',
-            'email'         => 'required|min_length[4]|max_length[100]|valid_email|is_unique[users.email]',
-            'password'      => 'required|min_length[4]|max_length[50]',
-            'confirmpassword'  => 'matches[password]'
+            'fullname'          => 'required|min_length[2]|max_length[50]',
+            'user_id'           => 'required|min_length[4]|max_length[100]|valid_email|is_unique[users.user_id]',
+            'password'          => 'required|min_length[4]|max_length[50]',
+            'confirmpassword'   => 'matches[password]'
         ];
           
         if($this->validate($rules)){
-            $userModel = new UserModel();
+            $userModel = new AuthModel();
             $data = [
-                'name'     => $this->request->getVar('name'),
-                'email'    => $this->request->getVar('email'),
-                'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT)
+                'fullname'  => $this->request->getVar('fullname'),
+                'user_id'   => $this->request->getVar('user_id'),
+                'password'  => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
+                'created'   => date('Y-m-d')
             ];
             $userModel->save($data);
             return redirect()->to('/signin');

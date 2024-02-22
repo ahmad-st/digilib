@@ -6,9 +6,11 @@ class AuthModel extends Model{
     protected $table = 'users';
     
     protected $allowedFields = [
-        'name',
-        'email',
+        'id',
+        'user_id',
+        'fullname',
+        'userlevel',
         'password',
-        'created_at'
+        'created'
     ];
 }

@@ -16,7 +16,9 @@ class App extends BaseConfig
      *
      *    http://example.com/
      */
-    public string $baseURL = 'http://localhost:8080/';
+    // $base_url  = "http://" . $_SERVER['HTTP_HOST'];
+    // $base_url .= str_replace(basename($_SERVER['SCRIPT_NAME']), "", $_SERVER['SCRIPT_NAME']);
+    public string $baseURL = 'http://digilib.test/';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.
